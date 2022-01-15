@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./index.js"></script>
+    <style>
+        body {
+            font-family: arial, sans-serif;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body onload=setLanguageTc()>
+    <div>
+        <a href="#" onclick="setLanguageEn()" style="padding-right: 10px;">English</a>
+        <a href="#" onclick="setLanguageTc()" style="padding-right: 10px;">繁體中文</a>
+        <a href="#" onclick="setLanguageSc()" style="padding-right: 10px;">简体中文</a>
+    </div>
+    <h1 class="en_item">Hong Kong Bus Enquiry</h1>
+    <h1 class="tc_item">香港公共巴士查詢</h1>
+    <h1 class="sc_item">香港公共巴士查询</h1>
+    <div>
+        <form>
+            <div>
+                <label for="company" class="en_item">Company:</label>
+                <label for="company" class="tc_item">公司:</label>
+                <label for="company" class="sc_item">公司:</label>
+                <select id="companyEn" class="en_item" name="company" onchange=showRoute()>
+                    <option value="kmb">The Kowloon Motor Bus</option>
+                    <option value="ctb">CityBus</option>
+                    <option value="nwfb">New World First Bus</option>
+                </select>
+                <select id="companyTc" class="tc_item" name="company" onchange=showRoute()>
+                    <option value="kmb">九巴</option>
+                    <option value="ctb">城巴</option>
+                    <option value="nwfb">新巴</option>
+                </select>
+                <select id="companySc" class="sc_item" name="company" onchange=showRoute()>
+                    <option value="kmb">九巴</option>
+                    <option value="ctb">城巴</option>
+                    <option value="nwfb">新巴</option>
+                </select>
+            </div>
+            <div>
+                <label for="route" class="en_item">Route:</label>
+                <label for="route" class="tc_item">路線:</label>
+                <label for="route" class="sc_item">路线:</label>
+                <input type="text" id="route" name="route" onkeyup=showRoute()>
+            </div>
+            <div>
+                <label for="route" class="en_item">Direction:</label>
+                <label for="route" class="tc_item">方向:</label>
+                <label for="route" class="sc_item">方向:</label>
+                <select id="directionEn" class="en_item" name="direction" onchange=showRouteDetail()>
+                </select>
+                <select id="directionTc" class="tc_item" name="direction" onchange=showRouteDetail()>
+                </select>
+                <select id="directionSc" class="sc_item" name="direction" onchange=showRouteDetail()>
+                </select>
+            </div>
+        </form>
+        <div>
+            <p class="en_item">List of Bus Stop</p>
+            <p class="tc_item">巴士站表</p>
+            <p class="sc_item">巴士站表</p>
+            <ol id="stopsEn" class="en_item">
+            </ol>
+            <ol id="stopsTc" class="tc_item">
+            </ol>
+            <ol id="stopsSc" class="sc_item">
+            </ol>
+        </div>
+    </div>
+    <footer>Powered by: <a href="https://github.com/cloudevhkguru" target="_blank">Cloudev Guru</a> </footer>
+</body>
+
+</html>
