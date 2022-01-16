@@ -174,6 +174,7 @@ async function renderRouteDetail(company, route, direction) {
 }
 
 function showRouteStopEta(e) {
+    removeAllEtaList()
     let routeStopId = e.srcElement.id
     let etaParameters = routeStopId.split("_")
     let company = etaParameters[0]
