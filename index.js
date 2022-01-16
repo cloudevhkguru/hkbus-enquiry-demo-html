@@ -1,4 +1,9 @@
-const apiHost = "https://lightsail.cloudev.guru/hkbus-enquiry-api"
+//const apiHost = "https://lightsail.cloudev.guru/hkbus-enquiry-api"
+const apiHost = "http://localhost:8080/hkbus-enquiry-api"
+const titleEn = "Hong Kong Bus Enquiry"
+const titleTc = "香港公共巴士查詢"
+const titleSc = "香港公共巴士查询"
+
 let sysLang = ""
 
 function setLanguageEn() {
@@ -11,6 +16,7 @@ function setLanguageEn() {
     for (let pageTcElement of document.getElementsByClassName("sc_item")) {
         pageTcElement.style.display = "none"
     }
+    document.title = titleEn
     sysLang = "en"
 }
 
@@ -24,6 +30,7 @@ function setLanguageTc() {
     for (let pageTcElement of document.getElementsByClassName("sc_item")) {
         pageTcElement.style.display = "none"
     }
+    document.title = titleTc
     sysLang = "tc"
 }
 
@@ -37,6 +44,7 @@ function setLanguageSc() {
     for (let pageTcElement of document.getElementsByClassName("tc_item")) {
         pageTcElement.style.display = "none"
     }
+    document.title = titleSc
     sysLang = "sc"
 }
 
@@ -151,9 +159,9 @@ async function renderRouteDetail(company, route, direction) {
             for (let i = 0; i < stopDetailDtosSorted.length; i++) {
                 let stopDto = stopDetailDtosSorted[i].stopDto
                 let seq = stopDetailDtosSorted[i].seq
-                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_en" class="routeStop" onclick="renderEta(event)">${stopDto.nameEn}<a></li>`
-                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_tc" class="routeStop" onclick="renderEta(event)">${stopDto.nameTc}<a></li>`
-                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_sc" class="routeStop" onclick="renderEta(event)">${stopDto.nameSc}<a></li>`
+                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_en" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameEn}<a></li>`
+                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_tc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameTc}<a></li>`
+                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_sc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameSc}<a></li>`
             }
             document.getElementById("stopsEn").innerHTML = enListHtml
             document.getElementById("stopsTc").innerHTML = tcListHtml
@@ -165,8 +173,7 @@ async function renderRouteDetail(company, route, direction) {
     xhttp.send();
 }
 
-async function renderEta(e) {
-    removeAllEtaList()
+function showRouteStopEta(e) {
     let routeStopId = e.srcElement.id
     let etaParameters = routeStopId.split("_")
     let company = etaParameters[0]
@@ -174,6 +181,11 @@ async function renderEta(e) {
     let route = etaParameters[2]
     let direction = etaParameters[3]
     let seq = etaParameters[4]
+    renderRouteStopEta(company, stopId, route, direction, seq)
+}
+
+async function renderRouteStopEta(company, stopId, route, direction, seq) {
+    removeAllEtaList()
     let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${seq}_en`
     let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${seq}_tc`
     let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${seq}_sc`
@@ -181,12 +193,15 @@ async function renderEta(e) {
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {
-            let routeStopEtaDtos = JSON.parse(this.response).routeStopEtaDtos
+            let routeStopEtaDtos = JSON.parse(this.response).result
             let routeStopEtaDtosSorted = routeStopEtaDtos.sort(function (a, b) { return a.minutes - b.minutes })
-            let routeStopEtaHtmlEn = `<ol class="etaListEn">`
-            let routeStopEtaHtmlTc = `<ol class="etaListTc">`
-            let routeStopEtaHtmlSc = `<ol class="etaListSc">`
+            let routeStopEtaHtmlEn = `<div class="etaListEn"><ol>`
+            let routeStopEtaHtmlTc = `<div class="etaListTc"><ol>`
+            let routeStopEtaHtmlSc = `<div class="etaListSc"><ol>`
             for (let routeStopEta of routeStopEtaDtosSorted) {
+                if (routeStopEta.minutes == null) {
+                    continue;
+                }
                 let minutesWord = "minutes"
                 if (routeStopEta.minutes < 2) {
                     minutesWord = "minute"
@@ -195,9 +210,13 @@ async function renderEta(e) {
                 routeStopEtaHtmlTc += `<li>${routeStopEta.minutes}分鐘 ${routeStopEta.remarkTc}</li>`
                 routeStopEtaHtmlSc += `<li>${routeStopEta.minutes}分钟 ${routeStopEta.remarkSc}</li>`
             }
-            routeStopEtaHtmlEn += "</ol>"
-            routeStopEtaHtmlTc += "</ol>"
-            routeStopEtaHtmlSc += "</ol>"
+            let checkTime = new Date()
+            routeStopEtaHtmlEn += `</ol><p>${getUpdatedTimeEn(checkTime)}</p>`
+            routeStopEtaHtmlTc += `</ol><p>${getUpdatedTimeTc(checkTime)}</p>`
+            routeStopEtaHtmlSc += `</ol><p>${getUpdatedTimeSc(checkTime)}</p>`
+            routeStopEtaHtmlEn += `<button href="#" id="${routeStopIdEn}_b" onclick="showRouteStopEta(event)">Refresh</button></div>`
+            routeStopEtaHtmlTc += `<button href="#" id="${routeStopIdTc}_b" onclick="showRouteStopEta(event)">更新</button></div>`
+            routeStopEtaHtmlSc += `<button href="#" id="${routeStopIdSc}_b" onclick="showRouteStopEta(event)">更新</button></div>`
             document.getElementById(routeStopIdEn).outerHTML += routeStopEtaHtmlEn
             document.getElementById(routeStopIdTc).outerHTML += routeStopEtaHtmlTc
             document.getElementById(routeStopIdSc).outerHTML += routeStopEtaHtmlSc
@@ -205,4 +224,38 @@ async function renderEta(e) {
     }
     xhttp.open("GET", url);
     xhttp.send();
+}
+
+function generateRefreshButton(routeStopId) {
+    return `<a href="" onclick=>`
+}
+
+function getUpdatedTimeEn(checkTime) {
+    let y = checkTime.getFullYear()
+    let m = checkTime.getMonth() + 1
+    let d = checkTime.getDate()
+    let h = checkTime.getHours()
+    let n = checkTime.getMinutes()
+    let s = checkTime.getSeconds()
+    return `Updated at ${y}-${m}-${d} ${h}:${n}:${s}`
+}
+
+function getUpdatedTimeTc(checkTime) {
+    let y = checkTime.getFullYear()
+    let m = checkTime.getMonth() + 1
+    let d = checkTime.getDate()
+    let h = checkTime.getHours()
+    let n = checkTime.getMinutes()
+    let s = checkTime.getSeconds()
+    return `於${y}年${m}月${d}日${h}:${n}:${s}更新`
+}
+
+function getUpdatedTimeSc(checkTime) {
+    let y = checkTime.getFullYear()
+    let m = checkTime.getMonth() + 1
+    let d = checkTime.getDate()
+    let h = checkTime.getHours()
+    let n = checkTime.getMinutes()
+    let s = checkTime.getSeconds()
+    return `于${y}年${m}月${d}日${h}:${n}:${s}更新`
 }
