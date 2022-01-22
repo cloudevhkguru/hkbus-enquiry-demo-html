@@ -52,9 +52,6 @@ function cleanTable() {
     document.getElementById("stopsEn").innerHTML = ""
     document.getElementById("stopsTc").innerHTML = ""
     document.getElementById("stopsSc").innerHTML = ""
-    document.getElementById("directionEn").innerHTML = ""
-    document.getElementById("directionTc").innerHTML = ""
-    document.getElementById("directionSc").innerHTML = ""
     removeAllEtaList()
 }
 
@@ -90,68 +87,85 @@ function getDirectionValue() {
     }
 }
 
-function showRoute() {
-    cleanTable()
-    let route = document.getElementById("route").value;
-    let company = getCompanyValue();
+function renderRouteListByRoute() {
+    let route = document.getElementById("routeSearch").value;
     if (route != null && route != "") {
-        getRouteByCompanyAndRoute(company, route)
-        renderRouteDetail(company, route, "outbound")
+        getRouteListByRoute(route)
     }
 }
 
-function showRouteDetail() {
-    document.getElementById("stopsEn").innerHTML = ""
-    document.getElementById("stopsTc").innerHTML = ""
-    document.getElementById("stopsSc").innerHTML = ""
-    let route = document.getElementById("route").value;
-    let company = getCompanyValue();
-    let direction = getDirectionValue()
-    renderRouteDetail(company, route, direction)
+function showRoute(e) {
+    cleanTable()
+    let routeKey = document.getElementById(e.srcElement.id).value;
+    let routeInfo = routeKey.split("-")
+    let company = routeInfo[0]
+    let route = routeInfo[1]
+    let direction = routeInfo[2]
+    let serviceType = routeInfo[3]
+    if (route != null && route != "") {
+        renderRouteDetail(company, route, direction, serviceType)
+    }
 }
 
-async function getRouteByCompanyAndRoute(company, route) {
-    removeAllEtaList()
-    let url = `${apiHost}/route/${company.trim()}/${route.trim()}`
+async function getRouteListByRoute(route) {
+    let url = `${apiHost}/route/${route.trim()}`
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {
-            routeJson = JSON.parse(this.response)
-            let enOutboundOptionHtml
-            let enInboundOptionHtml
-            let tcOutboundOptionHtml
-            let tcInboundOptionHtml
-            let scOutboundOptionHtml
-            let scInboundOptionHtml
-            for (let i = 0; i < routeJson.result.length; i++) {
-                let routeInfo = routeJson.result[i]
-                if (routeInfo.bound.toLowerCase() == "o") {
-                    enOutboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originEn}->${routeInfo.destinationEn}</option>`
-                    tcOutboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originTc}->${routeInfo.destinationTc}</option>`
-                    scOutboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originSc}->${routeInfo.destinationSc}</option>`
-                } else {
-                    enInboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originEn}->${routeInfo.destinationEn}</option>`
-                    tcInboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originTc}->${routeInfo.destinationTc}</option>`
-                    scInboundOptionHtml = `<option value="${routeInfo.bound}">${routeInfo.originSc}->${routeInfo.destinationSc}</option>`
-                }
+            if (!routeOnUiIsSameAsRequested(route)) {
+                console.log("Route changed")
+                return
+            } else {
+                responseJson = JSON.parse(this.response)
+                renderRouteListOption(responseJson.result)
             }
-            document.getElementById("directionEn").innerHTML = `${enOutboundOptionHtml}${enInboundOptionHtml}`
-            document.getElementById("directionTc").innerHTML = `${tcOutboundOptionHtml}${tcInboundOptionHtml}`
-            document.getElementById("directionSc").innerHTML = `${scOutboundOptionHtml}${scInboundOptionHtml}`
         }
     }
     xhttp.open("GET", url);
     xhttp.send();
 }
 
-async function renderRouteDetail(company, route, direction) {
+function routeOnUiIsSameAsRequested(routeRequested) {
+    let routeOnUi = document.getElementById("routeSearch").value;
+    return routeOnUi == routeRequested
+}
+
+function renderRouteListOption(routeDtos) {
+    if (routeDtos.length == 0) {
+        document.getElementById("routeFoundEn").innerHTML = ""
+        document.getElementById("routeFoundTc").innerHTML = ""
+        document.getElementById("routeFoundSc").innerHTML = ""
+        return
+    }
+    let enHtml
+    let tcHtml
+    let scHtml
+    for (let i = 0; i < routeDtos.length; i++) {
+        routeDto = routeDtos[i]
+        let routeKey = getRouteKey(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
+        enHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originEn} -> ${routeDto.destinationEn}</option>`
+        tcHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originTc} -> ${routeDto.destinationTc}</option>`
+        scHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originSc} -> ${routeDto.destinationSc}</option>`
+        if (i == 0) {
+            renderRouteDetail(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
+        }
+    }
+    document.getElementById("routeFoundEn").innerHTML = enHtml
+    document.getElementById("routeFoundTc").innerHTML = tcHtml
+    document.getElementById("routeFoundSc").innerHTML = scHtml
+}
+
+async function renderRouteDetail(company, route, direction, serviceType) {
     removeAllEtaList()
-    let url = `${apiHost}/route-detail/${company}/${route}/${direction}`
+    disabledRouteFindList(true)
+    let url = `${apiHost}/route-detail/${company}/${route}/${direction}/${serviceType}`
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {
-            routeDetailJson = JSON.parse(this.response)
-            let stopDetailDtos = routeDetailJson.result.stopDetailDtos
+            disabledRouteFindList(false)
+            let routeDetailJson = JSON.parse(this.response)
+            let result = routeDetailJson.result
+            let stopDetailDtos = result.stopDetailDtos
             let stopDetailDtosSorted = stopDetailDtos.sort(function (a, b) { return a.seq - b.seq });
             let enListHtml = "";
             let tcListHtml = "";
@@ -159,9 +173,9 @@ async function renderRouteDetail(company, route, direction) {
             for (let i = 0; i < stopDetailDtosSorted.length; i++) {
                 let stopDto = stopDetailDtosSorted[i].stopDto
                 let seq = stopDetailDtosSorted[i].seq
-                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_en" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameEn}<a></li>`
-                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_tc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameTc}<a></li>`
-                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${seq}_sc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameSc}<a></li>`
+                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_en" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameEn}<a></li>`
+                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_tc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameTc}<a></li>`
+                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_sc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameSc}<a></li>`
             }
             document.getElementById("stopsEn").innerHTML = enListHtml
             document.getElementById("stopsTc").innerHTML = tcListHtml
@@ -173,6 +187,19 @@ async function renderRouteDetail(company, route, direction) {
     xhttp.send();
 }
 
+async function disabledRouteFindList(disabled) {
+    document.getElementById("routeFoundEn").disabled = disabled
+    document.getElementById("routeFoundTc").disabled = disabled
+    document.getElementById("routeFoundSc").disabled = disabled
+}
+
+function getRouteKey(company, route, direction, serviceType) {
+    if (serviceType == null) {
+        serviceType = 'null'
+    }
+    return `${company}-${route}-${direction}-${serviceType}`;
+}
+
 function showRouteStopEta(e) {
     removeAllEtaList()
     let routeStopId = e.srcElement.id
@@ -181,16 +208,17 @@ function showRouteStopEta(e) {
     let stopId = etaParameters[1]
     let route = etaParameters[2]
     let direction = etaParameters[3]
-    let seq = etaParameters[4]
-    renderRouteStopEta(company, stopId, route, direction, seq)
+    let serviceType = etaParameters[4]
+    let seq = etaParameters[5]
+    renderRouteStopEta(company, stopId, route, direction, serviceType, seq)
 }
 
-async function renderRouteStopEta(company, stopId, route, direction, seq) {
+async function renderRouteStopEta(company, stopId, route, direction, serviceType, seq) {
     removeAllEtaList()
-    let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${seq}_en`
-    let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${seq}_tc`
-    let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${seq}_sc`
-    let url = `${apiHost}/route-stop-eta/${company}/${stopId}/${route}/${direction}`
+    let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_en`
+    let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_tc`
+    let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_sc`
+    let url = `${apiHost}/route-stop-eta/${company}/${stopId}/${route}/${direction}/${serviceType}`
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {

@@ -43,40 +43,22 @@
     <div>
         <form>
             <div>
-                <label for="company" class="en_item">Company:</label>
-                <label for="company" class="tc_item">公司:</label>
-                <label for="company" class="sc_item">公司:</label>
-                <select id="companyEn" class="en_item" name="company" onchange=showRoute()>
-                    <option value="kmb">The Kowloon Motor Bus</option>
-                    <option value="ctb">CityBus</option>
-                    <option value="nwfb">New World First Bus</option>
-                </select>
-                <select id="companyTc" class="tc_item" name="company" onchange=showRoute()>
-                    <option value="kmb">九巴</option>
-                    <option value="ctb">城巴</option>
-                    <option value="nwfb">新巴</option>
-                </select>
-                <select id="companySc" class="sc_item" name="company" onchange=showRoute()>
-                    <option value="kmb">九巴</option>
-                    <option value="ctb">城巴</option>
-                    <option value="nwfb">新巴</option>
-                </select>
+                <div>
+                    <label for="route" class="en_item">Route:</label>
+                    <label for="route" class="tc_item">路線:</label>
+                    <label for="route" class="sc_item">路线:</label>
+                    <input type="text" id="routeSearch" name="routeSearch" onkeyup=renderRouteListByRoute(event)>
+                </div>  
             </div>
             <div>
-                <label for="route" class="en_item">Route:</label>
-                <label for="route" class="tc_item">路線:</label>
-                <label for="route" class="sc_item">路线:</label>
-                <input type="text" id="route" name="route" onkeyup=showRoute()>
-            </div>
-            <div>
-                <label for="route" class="en_item">Direction:</label>
-                <label for="route" class="tc_item">方向:</label>
-                <label for="route" class="sc_item">方向:</label>
-                <select id="directionEn" class="en_item" name="direction" onchange=showRouteDetail()>
+                <label for="routeFound" class="en_item">Route(s) Found:</label>
+                <label for="routeFound" class="tc_item">已找到路線:</label>
+                <label for="routeFound" class="sc_item">已找到路线:</label>
+                <select id="routeFoundEn" class="en_item routeFoundList" name="routeFoundEn" onchange=showRoute(event)>
                 </select>
-                <select id="directionTc" class="tc_item" name="direction" onchange=showRouteDetail()>
+                <select id="routeFoundTc" class="tc_item routeFoundList" name="routeFound" onchange=showRoute(event)>
                 </select>
-                <select id="directionSc" class="sc_item" name="direction" onchange=showRouteDetail()>
+                <select id="routeFoundSc" class="sc_item routeFoundList" name="routeFoundSc" onchange=showRoute(event)>
                 </select>
             </div>
         </form>
