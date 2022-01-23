@@ -48,10 +48,19 @@ function setLanguageSc() {
     sysLang = "sc"
 }
 
+function cleanRouteFound(){
+    document.getElementById("routeFoundEn").innerHTML=""
+    document.getElementById("routeFoundTc").innerHTML=""
+    document.getElementById("routeFoundSc").innerHTML=""
+}
+
 function cleanTable() {
     document.getElementById("stopsEn").innerHTML = ""
     document.getElementById("stopsTc").innerHTML = ""
     document.getElementById("stopsSc").innerHTML = ""
+    document.getElementById("warningEn").innerHTML = ""
+    document.getElementById("warningTc").innerHTML = ""
+    document.getElementById("warningSc").innerHTML = ""
     removeAllEtaList()
 }
 
@@ -88,9 +97,15 @@ function getDirectionValue() {
 }
 
 function renderRouteListByRoute() {
+    cleanRouteFound()
+    cleanTable()
     let route = document.getElementById("routeSearch").value;
+    document.getElementById("routeSearchBtn").disabled=true
     if (route != null && route != "") {
         getRouteListByRoute(route)
+        document.getElementById("routeSearchBtn").disabled=false
+    }else{
+        document.getElementById("routeSearchBtn").disabled=false
     }
 }
 
@@ -112,13 +127,8 @@ async function getRouteListByRoute(route) {
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {
-            if (!routeOnUiIsSameAsRequested(route)) {
-                console.log("Route changed")
-                return
-            } else {
-                responseJson = JSON.parse(this.response)
-                renderRouteListOption(responseJson.result)
-            }
+            responseJson = JSON.parse(this.response)
+            renderRouteListOption(route,responseJson.result)
         }
     }
     xhttp.open("GET", url);
@@ -130,18 +140,27 @@ function routeOnUiIsSameAsRequested(routeRequested) {
     return routeOnUi == routeRequested
 }
 
-function renderRouteListOption(routeDtos) {
+function renderRouteListOption(route,routeDtos) {
     if (routeDtos.length == 0) {
+        cleanTable()
         document.getElementById("routeFoundEn").innerHTML = ""
         document.getElementById("routeFoundTc").innerHTML = ""
         document.getElementById("routeFoundSc").innerHTML = ""
+        setnotFoundWarning(route)
         return
     }
+    let routeDtosSorted = routeDtos.sort(function (a, b) {
+        let x = a.route.toString().toLowerCase() + (a.serviceType == null ? "999" : a.serviceType.toString().toLowerCase()) + a.bound.toLowerCase();
+        let y = b.route.toString().toLowerCase() + (b.serviceType == null ? "999" : b.serviceType.toString().toLowerCase()) + b.bound.toLowerCase();
+        if (x < y) { return -1; }
+        if (x > y) { return 1; }
+        return 0;
+    })
     let enHtml
     let tcHtml
     let scHtml
-    for (let i = 0; i < routeDtos.length; i++) {
-        routeDto = routeDtos[i]
+    for (let i = 0; i < routeDtosSorted.length; i++) {
+        routeDto = routeDtosSorted[i]
         let routeKey = getRouteKey(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
         enHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originEn} -> ${routeDto.destinationEn}</option>`
         tcHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originTc} -> ${routeDto.destinationTc}</option>`
@@ -153,6 +172,9 @@ function renderRouteListOption(routeDtos) {
     document.getElementById("routeFoundEn").innerHTML = enHtml
     document.getElementById("routeFoundTc").innerHTML = tcHtml
     document.getElementById("routeFoundSc").innerHTML = scHtml
+    if (routeDtos.length > 19) {
+        setTooManyRouteWarning(routeDtos.length)
+    }
 }
 
 async function renderRouteDetail(company, route, direction, serviceType) {
@@ -287,4 +309,36 @@ function getUpdatedTimeSc(checkTime) {
     let n = checkTime.getMinutes()
     let s = checkTime.getSeconds()
     return `于${y}年${m}月${d}日${h}:${n}:${s}更新`
+}
+
+async function setnotFoundWarning(route) {
+    let enMsg = `Cannot find${route}!`
+    let tcMsg = `未能找到路線 ${route}。`
+    let scMsg = `未能找到路线${route}。`
+    document.getElementById("warningEn").innerHTML = enMsg
+    document.getElementById("warningTc").innerHTML = tcMsg
+    document.getElementById("warningSc").innerHTML = scMsg
+    if (sysLang == "tc") {
+        window.alert(tcMsg)
+    } else if (sysLang == "sc") {
+        window.alert(scMsg)
+    } else {
+        window.alert(enMsg)
+    }
+}
+
+async function setTooManyRouteWarning(count) {
+    let enMsg = `${count} routes are found. Please specific the route!`
+    let tcMsg = `找到${count}條路線，請提供更完整的路線編號。`
+    let scMsg = `找到${count}条路线，请提供更完整的路线编号。`
+    document.getElementById("warningEn").innerHTML = enMsg
+    document.getElementById("warningTc").innerHTML = tcMsg
+    document.getElementById("warningSc").innerHTML = scMsg
+    if (sysLang == "tc") {
+        window.alert(tcMsg)
+    } else if (sysLang == "sc") {
+        window.alert(scMsg)
+    } else {
+        window.alert(enMsg)
+    }
 }

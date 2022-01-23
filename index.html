@@ -47,7 +47,15 @@
                     <label for="route" class="en_item">Route:</label>
                     <label for="route" class="tc_item">路線:</label>
                     <label for="route" class="sc_item">路线:</label>
-                    <input type="text" id="routeSearch" name="routeSearch" onkeyup=renderRouteListByRoute(event)>
+                    <input type="text" id="routeSearch" name="routeSearch" >
+                    <input type="button" id="routeSearchBtn" onclick=onkeyup=renderRouteListByRoute() value="Search">
+                </div>  
+            </div>
+            <div>
+                <div>
+                    <p id="warningEn" class="en_item"></p>
+                    <p id="warningTc" class="tc_item" ></p>
+                    <p id="warningSc" class="sc_item"></p>
                 </div>  
             </div>
             <div>
