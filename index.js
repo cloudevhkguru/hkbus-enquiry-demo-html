@@ -4,7 +4,26 @@ const titleEn = "Hong Kong Bus Enquiry"
 const titleTc = "香港公共巴士查詢"
 const titleSc = "香港公共巴士查询"
 
-let sysLang = ""
+let isBeingLoaded=true
+let urlParams = new URLSearchParams(window.location.search); 
+
+function init(){
+    isBeingLoaded=false
+    let sysLang=getSysLang();
+    let lastCheckedRoute=getDefaultRoute();
+    if(sysLang=="tc"){
+        setLanguageTc()
+    }else if(sysLang=="sc"){
+        setLanguageSc()
+    }else{
+        setLanguageEn()
+    }
+    if(lastCheckedRoute!=""){
+        document.getElementById("routeSearch").value=lastCheckedRoute.trim().toUpperCase();
+        renderRouteListByRoute()
+    }else{}
+    isBeingLoaded=true;
+}
 
 function setLanguageEn() {
     for (let pageEnElement of document.getElementsByClassName("en_item")) {
@@ -17,7 +36,7 @@ function setLanguageEn() {
         pageTcElement.style.display = "none"
     }
     document.title = titleEn
-    sysLang = "en"
+    localStorage.setItem("sysLang","en")
 }
 
 function setLanguageTc() {
@@ -31,7 +50,7 @@ function setLanguageTc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleTc
-    sysLang = "tc"
+    localStorage.setItem("sysLang","tc")
 }
 
 function setLanguageSc() {
@@ -45,7 +64,7 @@ function setLanguageSc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleSc
-    sysLang = "sc"
+    localStorage.setItem("sysLang","sc")
 }
 
 function cleanRouteFound(){
@@ -73,26 +92,6 @@ function removeAllEtaList() {
     }
     for (let etaListSc of document.getElementsByClassName("etaListSc")) {
         etaListSc.remove()
-    }
-}
-
-function getCompanyValue() {
-    if (sysLang == "en") {
-        return document.getElementById("companyEn").value;
-    } else if (sysLang == "sc") {
-        return document.getElementById("companySc").value;
-    } else {
-        return document.getElementById("companyTc").value;
-    }
-}
-
-function getDirectionValue() {
-    if (sysLang == "en") {
-        return document.getElementById("directionEn").value;
-    } else if (sysLang == "sc") {
-        return document.getElementById("directionSc").value;
-    } else {
-        return document.getElementById("directionTc").value;
     }
 }
 
@@ -149,6 +148,7 @@ function renderRouteListOption(route,routeDtos) {
         setnotFoundWarning(route)
         return
     }
+    localStorage.setItem("lastCheckedRoute",route.toUpperCase())
     let routeDtosSorted = routeDtos.sort(function (a, b) {
         let x = a.route.toString().toLowerCase() + (a.serviceType == null ? "999" : a.serviceType.toString().toLowerCase()) + a.bound.toLowerCase();
         let y = b.route.toString().toLowerCase() + (b.serviceType == null ? "999" : b.serviceType.toString().toLowerCase()) + b.bound.toLowerCase();
@@ -159,12 +159,17 @@ function renderRouteListOption(route,routeDtos) {
     let enHtml
     let tcHtml
     let scHtml
+    let fullFare
     for (let i = 0; i < routeDtosSorted.length; i++) {
         routeDto = routeDtosSorted[i]
         let routeKey = getRouteKey(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
-        enHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originEn} -> ${routeDto.destinationEn}</option>`
-        tcHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originTc} -> ${routeDto.destinationTc}</option>`
-        scHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originSc} -> ${routeDto.destinationSc}</option>`
+        let fullFare=""
+        if(routeDto.fullFare){
+            fullFare=`$${routeDto.fullFare}`
+        }
+        enHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originEn} -> ${routeDto.destinationEn} ${fullFare}</option>`
+        tcHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originTc} -> ${routeDto.destinationTc} ${fullFare}</option>`
+        scHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originSc} -> ${routeDto.destinationSc} ${fullFare}</option>`
         if (i == 0) {
             renderRouteDetail(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
         }
@@ -172,7 +177,7 @@ function renderRouteListOption(route,routeDtos) {
     document.getElementById("routeFoundEn").innerHTML = enHtml
     document.getElementById("routeFoundTc").innerHTML = tcHtml
     document.getElementById("routeFoundSc").innerHTML = scHtml
-    if (routeDtos.length > 19) {
+    if (routeDtos.length > 19 && isBeingLoaded) {
         setTooManyRouteWarning(routeDtos.length)
     }
 }
@@ -318,6 +323,7 @@ async function setnotFoundWarning(route) {
     document.getElementById("warningEn").innerHTML = enMsg
     document.getElementById("warningTc").innerHTML = tcMsg
     document.getElementById("warningSc").innerHTML = scMsg
+    sysLang=getSysLangFromLocalStorage()
     if (sysLang == "tc") {
         window.alert(tcMsg)
     } else if (sysLang == "sc") {
@@ -334,11 +340,40 @@ async function setTooManyRouteWarning(count) {
     document.getElementById("warningEn").innerHTML = enMsg
     document.getElementById("warningTc").innerHTML = tcMsg
     document.getElementById("warningSc").innerHTML = scMsg
+    sysLang=getSysLangFromLocalStorage()
     if (sysLang == "tc") {
         window.alert(tcMsg)
     } else if (sysLang == "sc") {
         window.alert(scMsg)
     } else {
         window.alert(enMsg)
+    }
+}
+
+function getSysLang(){
+    let languageFromUrlParams=urlParams.get("language")
+    let sysLangFromLocalStorage=(localStorage.getItem("sysLang")==null||localStorage.getItem("sysLang")==""?"":localStorage.getItem("sysLang").trim().toLowerCase())
+    let sysLangFromUrlParams=(languageFromUrlParams==null||languageFromUrlParams==""?"":languageFromUrlParams.trim().toLowerCase())
+    
+    if(sysLangFromUrlParams!=""){
+        return sysLangFromUrlParams;
+    }else if(sysLangFromLocalStorage!=""){
+        return sysLangFromLocalStorage;
+    }else{
+        return "en"
+    }
+}
+
+function getDefaultRoute(){
+    let routeFromUrlParams=urlParams.get("route")
+    let routeFromLocalStorage=(localStorage.getItem("route")==null||localStorage.getItem("route")==""?"":localStorage.getItem("route").trim().toLowerCase())
+    routeFromUrlParams=(routeFromUrlParams==null||routeFromUrlParams==""?"":routeFromUrlParams.trim().toLowerCase())
+    
+    if(routeFromUrlParams!=""){
+        return routeFromUrlParams;
+    }else if(routeFromLocalStorage!=""){
+        return routeLangFromLocalStorage;
+    }else{
+        return ""
     }
 }
