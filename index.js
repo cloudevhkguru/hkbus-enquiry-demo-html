@@ -1,28 +1,28 @@
-//const apiHost = "https://lightsail.cloudev.guru/hkbus-enquiry-api"
-const apiHost = "http://localhost:8080/hkbus-enquiry-api"
+//const apiHost = "http://localhost:8080/hkbus-enquiry-api"
+const apiHost="https://cloudev-guru-appservice01.azurewebsites.net/hkbus-enquiry-api"
 const titleEn = "Hong Kong Bus Enquiry"
 const titleTc = "香港公共巴士查詢"
 const titleSc = "香港公共巴士查询"
 
-let isBeingLoaded=true
-let urlParams = new URLSearchParams(window.location.search); 
+let isBeingLoaded = true
+let urlParams = new URLSearchParams(window.location.search);
 
-function init(){
-    isBeingLoaded=false
-    let sysLang=getSysLang();
-    let lastCheckedRoute=getDefaultRoute();
-    if(sysLang=="tc"){
+function init() {
+    isBeingLoaded = false
+    let sysLang = getSysLang();
+    let lastCheckedRoute = getDefaultRoute();
+    if (sysLang == "tc") {
         setLanguageTc()
-    }else if(sysLang=="sc"){
+    } else if (sysLang == "sc") {
         setLanguageSc()
-    }else{
+    } else {
         setLanguageEn()
     }
-    if(lastCheckedRoute!=""){
-        document.getElementById("routeSearch").value=lastCheckedRoute.trim().toUpperCase();
+    if (lastCheckedRoute != "") {
+        document.getElementById("routeSearch").value = lastCheckedRoute.trim().toUpperCase();
         renderRouteListByRoute()
-    }else{}
-    isBeingLoaded=true;
+    } else { }
+    isBeingLoaded = true;
 }
 
 function setLanguageEn() {
@@ -36,7 +36,7 @@ function setLanguageEn() {
         pageTcElement.style.display = "none"
     }
     document.title = titleEn
-    localStorage.setItem("sysLang","en")
+    localStorage.setItem("sysLang", "en")
 }
 
 function setLanguageTc() {
@@ -50,7 +50,7 @@ function setLanguageTc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleTc
-    localStorage.setItem("sysLang","tc")
+    localStorage.setItem("sysLang", "tc")
 }
 
 function setLanguageSc() {
@@ -64,13 +64,13 @@ function setLanguageSc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleSc
-    localStorage.setItem("sysLang","sc")
+    localStorage.setItem("sysLang", "sc")
 }
 
-function cleanRouteFound(){
-    document.getElementById("routeFoundEn").innerHTML=""
-    document.getElementById("routeFoundTc").innerHTML=""
-    document.getElementById("routeFoundSc").innerHTML=""
+function cleanRouteFound() {
+    document.getElementById("routeFoundEn").innerHTML = ""
+    document.getElementById("routeFoundTc").innerHTML = ""
+    document.getElementById("routeFoundSc").innerHTML = ""
 }
 
 function cleanTable() {
@@ -99,12 +99,12 @@ function renderRouteListByRoute() {
     cleanRouteFound()
     cleanTable()
     let route = document.getElementById("routeSearch").value;
-    document.getElementById("routeSearchBtn").disabled=true
+    document.getElementById("routeSearchBtn").disabled = true
     if (route != null && route != "") {
         getRouteListByRoute(route)
-        document.getElementById("routeSearchBtn").disabled=false
-    }else{
-        document.getElementById("routeSearchBtn").disabled=false
+        document.getElementById("routeSearchBtn").disabled = false
+    } else {
+        document.getElementById("routeSearchBtn").disabled = false
     }
 }
 
@@ -127,7 +127,7 @@ async function getRouteListByRoute(route) {
     xhttp.onload = function () {
         if (this.response) {
             responseJson = JSON.parse(this.response)
-            renderRouteListOption(route,responseJson.result)
+            renderRouteListOption(route, responseJson.result)
         }
     }
     xhttp.open("GET", url);
@@ -150,8 +150,8 @@ function renderRouteListOption(route,routeDtos) {
     }
     localStorage.setItem("lastCheckedRoute",route.toUpperCase())
     let routeDtosSorted = routeDtos.sort(function (a, b) {
-        let x = a.route.toString().toLowerCase() + (a.serviceType == null ? "999" : a.serviceType.toString().toLowerCase()) + a.bound.toLowerCase();
-        let y = b.route.toString().toLowerCase() + (b.serviceType == null ? "999" : b.serviceType.toString().toLowerCase()) + b.bound.toLowerCase();
+        let x = (a.route.toString()+a.originEn+a.destinationEn+a.bound).toLowerCase();
+        let y = (b.route.toString()+b.originEn+b.destinationEn+b.bound).toLowerCase();
         if (x < y) { return -1; }
         if (x > y) { return 1; }
         return 0;
@@ -200,9 +200,9 @@ async function renderRouteDetail(company, route, direction, serviceType) {
             for (let i = 0; i < stopDetailDtosSorted.length; i++) {
                 let stopDto = stopDetailDtosSorted[i].stopDto
                 let seq = stopDetailDtosSorted[i].seq
-                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_en" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameEn}<a></li>`
-                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_tc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameTc}<a></li>`
-                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${seq}_sc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameSc}<a></li>`
+                enListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${stopDto.latitude}_${stopDto.longtitude}_${seq}_en" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameEn}<a></li>`
+                tcListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${stopDto.latitude}_${stopDto.longtitude}_${seq}_tc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameTc}<a></li>`
+                scListHtml += `<li><a href="#" id="${stopDto.company}_${stopDto.stop}_${route}_${direction}_${serviceType}_${stopDto.latitude}_${stopDto.longtitude}_${seq}_sc" class="routeStop" onclick="showRouteStopEta(event)">${stopDto.nameSc}<a></li>`
             }
             document.getElementById("stopsEn").innerHTML = enListHtml
             document.getElementById("stopsTc").innerHTML = tcListHtml
@@ -236,24 +236,27 @@ function showRouteStopEta(e) {
     let route = etaParameters[2]
     let direction = etaParameters[3]
     let serviceType = etaParameters[4]
-    let seq = etaParameters[5]
-    renderRouteStopEta(company, stopId, route, direction, serviceType, seq)
+    let latitude = etaParameters[5]
+    let longtitude = etaParameters[6]
+    let seq = etaParameters[7]
+    renderRouteStopEta(company, stopId, route, direction, serviceType, latitude,longtitude,seq)
 }
 
-async function renderRouteStopEta(company, stopId, route, direction, serviceType, seq) {
+async function renderRouteStopEta(company, stopId, route, direction, serviceType,latitude,longtitude,seq) {
     removeAllEtaList()
-    let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_en`
-    let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_tc`
-    let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${seq}_sc`
+    let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_en`
+    let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_tc`
+    let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_sc`
     let url = `${apiHost}/route-stop-eta/${company}/${stopId}/${route}/${direction}/${serviceType}`
+    let googleMapHtml=`<div class="mapouter"><div class="gmap_canvas"><iframe width="300" height="250" id="gmap_canvas" src="https://maps.google.com/maps?q=${latitude},${longtitude}&t=&z=17&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><a href="https://www.embedgooglemap.net/blog/divi-discount-code-elegant-themes-coupon/"></a><br><style>.mapouter{position:relative;text-align:right;height:250px;width:300px;}</style><a href="https://www.embedgooglemap.net">embedgooglemap.net</a><style>.gmap_canvas {overflow:hidden;background:none!important;height:250px;width:300px;}</style></div></div>`
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {
             let routeStopEtaDtos = JSON.parse(this.response).result
             let routeStopEtaDtosSorted = routeStopEtaDtos.sort(function (a, b) { return a.minutes - b.minutes })
-            let routeStopEtaHtmlEn = `<div class="etaListEn"><ol>`
-            let routeStopEtaHtmlTc = `<div class="etaListTc"><ol>`
-            let routeStopEtaHtmlSc = `<div class="etaListSc"><ol>`
+            let routeStopEtaHtmlEn = `<div class="etaListEn">${googleMapHtml}<ol>`
+            let routeStopEtaHtmlTc = `<div class="etaListTc">${googleMapHtml}<ol>`
+            let routeStopEtaHtmlSc = `<div class="etaListSc">${googleMapHtml}<ol>`
             for (let routeStopEta of routeStopEtaDtosSorted) {
                 if (routeStopEta.minutes == null) {
                     continue;
@@ -323,7 +326,7 @@ async function setnotFoundWarning(route) {
     document.getElementById("warningEn").innerHTML = enMsg
     document.getElementById("warningTc").innerHTML = tcMsg
     document.getElementById("warningSc").innerHTML = scMsg
-    sysLang=getSysLangFromLocalStorage()
+    sysLang = getSysLang()
     if (sysLang == "tc") {
         window.alert(tcMsg)
     } else if (sysLang == "sc") {
@@ -340,7 +343,7 @@ async function setTooManyRouteWarning(count) {
     document.getElementById("warningEn").innerHTML = enMsg
     document.getElementById("warningTc").innerHTML = tcMsg
     document.getElementById("warningSc").innerHTML = scMsg
-    sysLang=getSysLangFromLocalStorage()
+    sysLang = getSysLang()
     if (sysLang == "tc") {
         window.alert(tcMsg)
     } else if (sysLang == "sc") {
@@ -350,30 +353,30 @@ async function setTooManyRouteWarning(count) {
     }
 }
 
-function getSysLang(){
-    let languageFromUrlParams=urlParams.get("language")
-    let sysLangFromLocalStorage=(localStorage.getItem("sysLang")==null||localStorage.getItem("sysLang")==""?"":localStorage.getItem("sysLang").trim().toLowerCase())
-    let sysLangFromUrlParams=(languageFromUrlParams==null||languageFromUrlParams==""?"":languageFromUrlParams.trim().toLowerCase())
-    
-    if(sysLangFromUrlParams!=""){
+function getSysLang() {
+    let languageFromUrlParams = urlParams.get("language")
+    let sysLangFromLocalStorage = (localStorage.getItem("sysLang") == null || localStorage.getItem("sysLang") == "" ? "" : localStorage.getItem("sysLang").trim().toLowerCase())
+    let sysLangFromUrlParams = (languageFromUrlParams == null || languageFromUrlParams == "" ? "" : languageFromUrlParams.trim().toLowerCase())
+
+    if (sysLangFromUrlParams != "") {
         return sysLangFromUrlParams;
-    }else if(sysLangFromLocalStorage!=""){
+    } else if (sysLangFromLocalStorage != "") {
         return sysLangFromLocalStorage;
-    }else{
+    } else {
         return "en"
     }
 }
 
-function getDefaultRoute(){
-    let routeFromUrlParams=urlParams.get("route")
-    let routeFromLocalStorage=(localStorage.getItem("route")==null||localStorage.getItem("route")==""?"":localStorage.getItem("route").trim().toLowerCase())
-    routeFromUrlParams=(routeFromUrlParams==null||routeFromUrlParams==""?"":routeFromUrlParams.trim().toLowerCase())
-    
-    if(routeFromUrlParams!=""){
+function getDefaultRoute() {
+    let routeFromUrlParams = urlParams.get("route")
+    let routeFromLocalStorage = (localStorage.getItem("route") == null || localStorage.getItem("route") == "" ? "" : localStorage.getItem("route").trim().toLowerCase())
+    routeFromUrlParams = (routeFromUrlParams == null || routeFromUrlParams == "" ? "" : routeFromUrlParams.trim().toLowerCase())
+
+    if (routeFromUrlParams != "") {
         return routeFromUrlParams;
-    }else if(routeFromLocalStorage!=""){
+    } else if (routeFromLocalStorage != "") {
         return routeLangFromLocalStorage;
-    }else{
+    } else {
         return ""
     }
 }
