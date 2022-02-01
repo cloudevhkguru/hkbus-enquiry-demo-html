@@ -1,5 +1,5 @@
 //const apiHost = "http://localhost:8080/hkbus-enquiry-api"
-const apiHost="https://cloudev-guru-appservice01.azurewebsites.net/hkbus-enquiry-api"
+const apiHost = "https://cloudev-guru-appservice01.azurewebsites.net/hkbus-enquiry-api"
 const titleEn = "Hong Kong Bus Enquiry"
 const titleTc = "香港公共巴士查詢"
 const titleSc = "香港公共巴士查询"
@@ -36,6 +36,7 @@ function setLanguageEn() {
         pageTcElement.style.display = "none"
     }
     document.title = titleEn
+    document.getElementById("pageTitleEn").innerHTML = titleEn
     localStorage.setItem("sysLang", "en")
 }
 
@@ -50,6 +51,7 @@ function setLanguageTc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleTc
+    document.getElementById("pageTitleTc").innerHTML = titleTc
     localStorage.setItem("sysLang", "tc")
 }
 
@@ -64,23 +66,18 @@ function setLanguageSc() {
         pageTcElement.style.display = "none"
     }
     document.title = titleSc
+    document.getElementById("pageTitleSc").innerHTML = titleSc
     localStorage.setItem("sysLang", "sc")
 }
 
 function cleanRouteFound() {
-    document.getElementById("routeFoundEn").innerHTML = ""
-    document.getElementById("routeFoundTc").innerHTML = ""
-    document.getElementById("routeFoundSc").innerHTML = ""
+    document.getElementsByClassName("routeFoundList").innerHTML = ""
 }
 
 function cleanTable() {
-    document.getElementById("stopsEn").innerHTML = ""
-    document.getElementById("stopsTc").innerHTML = ""
-    document.getElementById("stopsSc").innerHTML = ""
-    document.getElementById("warningEn").innerHTML = ""
-    document.getElementById("warningTc").innerHTML = ""
-    document.getElementById("warningSc").innerHTML = ""
     removeAllEtaList()
+    document.getElementsByClassName("stopList").innerHTML = ""
+    document.getElementsByClassName("warningText").innerHTML = ""
 }
 
 function removeAllEtaList() {
@@ -96,8 +93,8 @@ function removeAllEtaList() {
 }
 
 function renderRouteListByRoute() {
-    cleanRouteFound()
     cleanTable()
+    cleanRouteFound()
     let route = document.getElementById("routeSearch").value;
     document.getElementById("routeSearchBtn").disabled = true
     if (route != null && route != "") {
@@ -139,7 +136,7 @@ function routeOnUiIsSameAsRequested(routeRequested) {
     return routeOnUi == routeRequested
 }
 
-function renderRouteListOption(route,routeDtos) {
+function renderRouteListOption(route, routeDtos) {
     if (routeDtos.length == 0) {
         cleanTable()
         document.getElementById("routeFoundEn").innerHTML = ""
@@ -148,10 +145,10 @@ function renderRouteListOption(route,routeDtos) {
         setnotFoundWarning(route)
         return
     }
-    localStorage.setItem("lastCheckedRoute",route.toUpperCase())
+    localStorage.setItem("lastCheckedRoute", route.toUpperCase())
     let routeDtosSorted = routeDtos.sort(function (a, b) {
-        let x = (a.route.toString()+a.originEn+a.destinationEn+a.bound).toLowerCase();
-        let y = (b.route.toString()+b.originEn+b.destinationEn+b.bound).toLowerCase();
+        let x = (a.route.toString() + a.originEn + a.destinationEn + a.bound).toLowerCase();
+        let y = (b.route.toString() + b.originEn + b.destinationEn + b.bound).toLowerCase();
         if (x < y) { return -1; }
         if (x > y) { return 1; }
         return 0;
@@ -163,9 +160,9 @@ function renderRouteListOption(route,routeDtos) {
     for (let i = 0; i < routeDtosSorted.length; i++) {
         routeDto = routeDtosSorted[i]
         let routeKey = getRouteKey(routeDto.company, routeDto.route, routeDto.bound, routeDto.serviceType)
-        let fullFare=""
-        if(routeDto.fullFare){
-            fullFare=`$${routeDto.fullFare}`
+        let fullFare = ""
+        if (routeDto.fullFare) {
+            fullFare = `$${routeDto.fullFare}`
         }
         enHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originEn} -> ${routeDto.destinationEn} ${fullFare}</option>`
         tcHtml += `<option value=${routeKey}>${routeDto.company} ${routeDto.route} ${routeDto.originTc} -> ${routeDto.destinationTc} ${fullFare}</option>`
@@ -215,9 +212,7 @@ async function renderRouteDetail(company, route, direction, serviceType) {
 }
 
 async function disabledRouteFindList(disabled) {
-    document.getElementById("routeFoundEn").disabled = disabled
-    document.getElementById("routeFoundTc").disabled = disabled
-    document.getElementById("routeFoundSc").disabled = disabled
+    document.getElementsByClassName("routeFoundList").disabled = disabled
 }
 
 function getRouteKey(company, route, direction, serviceType) {
@@ -239,16 +234,16 @@ function showRouteStopEta(e) {
     let latitude = etaParameters[5]
     let longtitude = etaParameters[6]
     let seq = etaParameters[7]
-    renderRouteStopEta(company, stopId, route, direction, serviceType, latitude,longtitude,seq)
+    renderRouteStopEta(company, stopId, route, direction, serviceType, latitude, longtitude, seq)
 }
 
-async function renderRouteStopEta(company, stopId, route, direction, serviceType,latitude,longtitude,seq) {
+async function renderRouteStopEta(company, stopId, route, direction, serviceType, latitude, longtitude, seq) {
     removeAllEtaList()
     let routeStopIdEn = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_en`
     let routeStopIdTc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_tc`
     let routeStopIdSc = `${company}_${stopId}_${route}_${direction}_${serviceType}_${latitude}_${longtitude}_${seq}_sc`
     let url = `${apiHost}/route-stop-eta/${company}/${stopId}/${route}/${direction}/${serviceType}`
-    let googleMapHtml=`<div class="mapouter"><div class="gmap_canvas"><iframe width="300" height="250" id="gmap_canvas" src="https://maps.google.com/maps?q=${latitude},${longtitude}&t=&z=17&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><a href="https://www.embedgooglemap.net/blog/divi-discount-code-elegant-themes-coupon/"></a><br><style>.mapouter{position:relative;text-align:right;height:250px;width:300px;}</style><a href="https://www.embedgooglemap.net">embedgooglemap.net</a><style>.gmap_canvas {overflow:hidden;background:none!important;height:250px;width:300px;}</style></div></div>`
+    let googleMapHtml = `<div class="mapouter"><div class="gmap_canvas"><iframe width="300" height="250" id="gmap_canvas" src="https://maps.google.com/maps?q=${latitude},${longtitude}&t=&z=17&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe><a href="https://www.embedgooglemap.net/blog/divi-discount-code-elegant-themes-coupon/"></a><br><style>.mapouter{position:relative;text-align:right;height:250px;width:300px;}</style><a href="https://www.embedgooglemap.net">embedgooglemap.net</a><style>.gmap_canvas {overflow:hidden;background:none!important;height:250px;width:300px;}</style></div></div>`
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
         if (this.response) {

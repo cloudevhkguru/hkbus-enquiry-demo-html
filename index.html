@@ -5,41 +5,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title></title>
     <script src="./index.js"></script>
-    <style>
-        body {
-            font-family: arial, sans-serif;
-            padding: 36px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        td,
-        th {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-
-        tr:nth-child(even) {
-            background-color: #dddddd;
-        }
-    </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body onload=init()>
     <div>
-        <a href="#" onclick="setLanguageEn()" style="padding-right: 10px;">English</a>
-        <a href="#" onclick="setLanguageTc()" style="padding-right: 10px;">繁體中文</a>
-        <a href="#" onclick="setLanguageSc()" style="padding-right: 10px;">简体中文</a>
+        <a href="#" class="setLang" onclick="setLanguageEn()" >English</a>
+        <a href="#" class="setLang" onclick="setLanguageTc()" >繁體中文</a>
+        <a href="#" class="setLang" onclick="setLanguageSc()" >简体中文</a>
     </div>
-    <h1 class="en_item">Hong Kong Bus Enquiry</h1>
-    <h1 class="tc_item">香港公共巴士查詢</h1>
-    <h1 class="sc_item">香港公共巴士查询</h1>
+    <p id="pageTitleEn" class="en_item pageTitle"></p>
+    <p id="pageTitleTc" class="tc_item pageTitle"></p>
+    <p id="pageTitleSc" class="sc_item pageTitle"></p>
     <div>
         <form>
             <div>
@@ -53,15 +32,15 @@
             </div>
             <div>
                 <div>
-                    <p id="warningEn" class="en_item"></p>
-                    <p id="warningTc" class="tc_item" ></p>
-                    <p id="warningSc" class="sc_item"></p>
+                    <p id="warningEn" class="en_item warningText"></p>
+                    <p id="warningTc" class="tc_item warningText" ></p>
+                    <p id="warningSc" class="sc_item warningText"></p>
                 </div>  
             </div>
             <div>
-                <label for="routeFound" class="en_item">Route(s) Found:</label>
-                <label for="routeFound" class="tc_item">已找到路線:</label>
-                <label for="routeFound" class="sc_item">已找到路线:</label>
+                <label for="routeFound" class="en_item routeFoundTitle">Route(s) Found:</label>
+                <label for="routeFound" class="tc_item routeFoundTitle">已找到路線:</label>
+                <label for="routeFound" class="sc_item routeFoundTitle">已找到路线:</label>
                 <select id="routeFoundEn" class="en_item routeFoundList" name="routeFoundEn" onchange=showRoute(event)>
                 </select>
                 <select id="routeFoundTc" class="tc_item routeFoundList" name="routeFound" onchange=showRoute(event)>
@@ -74,11 +53,11 @@
             <p class="en_item">List of Bus Stop</p>
             <p class="tc_item">巴士站表</p>
             <p class="sc_item">巴士站表</p>
-            <ol id="stopsEn" class="en_item">
+            <ol id="stopsEn" class="en_item stopList">
             </ol>
-            <ol id="stopsTc" class="tc_item">
+            <ol id="stopsTc" class="tc_item stopList">
             </ol>
-            <ol id="stopsSc" class="sc_item">
+            <ol id="stopsSc" class="sc_item stopList">
             </ol>
         </div>
     </div>
